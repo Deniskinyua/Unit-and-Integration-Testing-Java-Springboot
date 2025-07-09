@@ -3,7 +3,6 @@ package com.testing.junitmockitotesting.MasteringTesting.Repository;
 
 import com.testing.junitmockitotesting.MasteringTesting.Entities.Employee;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -19,6 +18,8 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 @DataJpaTest
 @Testcontainers
@@ -38,7 +39,9 @@ public class EmployeeRepositoryTest {
 
     @BeforeEach
     void setUpDatabase(){
-        testEntityManager.getEntityManager().getMetamodel().entity(Employee.class);
+        testEntityManager.getEntityManager()
+                .getMetamodel()
+                .entity(Employee.class);
     }
 
     @Test
@@ -69,4 +72,26 @@ public class EmployeeRepositoryTest {
                 .extracting(Employee::getEmail)
                 .isEqualTo(email);
     }
+
+    @Test
+    void save_ShouldPersistEmployeeWithAllRequiredFields(){
+        // Given
+        Employee employee = Employee.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .email("john.doe@example.com")
+                .joinDate(LocalDate.now())
+                .build();
+
+        // When
+        Employee saved = employeeRepository.save(employee);
+        testEntityManager.flush();
+        testEntityManager.clear();
+
+        // Then
+        assertThat(saved.getId()).isNotNull();
+        Employee found = testEntityManager.find(Employee.class, saved.getId());
+        assertThat(found).usingRecursiveComparison().isEqualTo(employee);
+    }
+
 }
