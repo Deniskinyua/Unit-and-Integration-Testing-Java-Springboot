@@ -60,7 +60,8 @@ public class Employee {
                 .firstName(firstName)
                 .lastName(lastName)
                 .email(email)
-                .joinDate(joinDate);
+                .joinDate(joinDate)
+                ;
     }
 
 }
